@@ -37,25 +37,25 @@ export default function TodoApp() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center p-6 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex flex-col items-center p-6 text-white">
       <motion.h1
-        className="text-4xl font-bold mb-6"
+        className="text-5xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        Stunning To-Do App
+        Sleek Dark To-Do App
       </motion.h1>
       <div className="flex gap-4 w-full max-w-md">
         <Input
-          className="flex-1 bg-gray-800 border-gray-700 text-white"
+          className="flex-1 bg-gray-800 border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 rounded-lg px-4 py-2"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Enter task..."
+          placeholder="Enter a task..."
         />
         {editingIndex === null ? (
-          <Button onClick={addTask}>Add</Button>
+          <Button className="bg-purple-600 hover:bg-purple-700 transition-all shadow-lg" onClick={addTask}>Add</Button>
         ) : (
-          <Button onClick={updateTask}>Update</Button>
+          <Button className="bg-blue-600 hover:bg-blue-700 transition-all shadow-lg" onClick={updateTask}>Update</Button>
         )}
       </div>
       <div className="mt-6 w-full max-w-md">
@@ -66,14 +66,24 @@ export default function TodoApp() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
           >
-            <Card className="bg-gray-800 shadow-lg mb-3">
+            <Card className="bg-gray-800 border border-gray-700 shadow-lg mb-3 rounded-lg">
               <CardContent className="flex justify-between items-center p-4">
-                <span>{task}</span>
+                <span className="text-gray-300">{task}</span>
                 <div className="flex gap-2">
-                  <Button size="icon" variant="outline" onClick={() => editTask(index)}>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="hover:bg-blue-500 hover:text-white transition-all"
+                    onClick={() => editTask(index)}
+                  >
                     <Edit3 size={16} />
                   </Button>
-                  <Button size="icon" variant="destructive" onClick={() => deleteTask(index)}>
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    className="hover:bg-red-600 hover:text-white transition-all"
+                    onClick={() => deleteTask(index)}
+                  >
                     <Trash2 size={16} />
                   </Button>
                 </div>
