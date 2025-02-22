@@ -1,88 +1,87 @@
-const express = require('express'),
-    bodyParser = require('body-parser'),
-    // In order to use PUT HTTP verb to edit item
-    methodOverride = require('method-override'),
-    // Mitigate XSS using sanitizer
-    sanitizer = require('sanitizer'),
-    app = express(),
-    port = 8000
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Trash2, Edit3 } from "lucide-react";
 
-app.use(bodyParser.urlencoded({
-    extended: false
-}));
-// https: //github.com/expressjs/method-override#custom-logic
-app.use(methodOverride(function (req, res) {
-    if (req.body && typeof req.body === 'object' && '_method' in req.body) {
-        // look in urlencoded POST bodies and delete it
-        let method = req.body._method;
-        delete req.body._method;
-        return method
+export default function TodoApp() {
+  const [tasks, setTasks] = useState([]);
+  const [input, setInput] = useState("");
+  const [editingIndex, setEditingIndex] = useState(null);
+
+  const addTask = () => {
+    if (input.trim() !== "") {
+      setTasks([...tasks, input]);
+      setInput("");
     }
-}));
+  };
 
+  const deleteTask = (index) => {
+    setTasks(tasks.filter((_, i) => i !== index));
+  };
 
-let todolist = [];
+  const editTask = (index) => {
+    setInput(tasks[index]);
+    setEditingIndex(index);
+  };
 
-/* The to do list and the form are displayed */
-app.get('/todo', function (req, res) {
-        res.render('todo.ejs', {
-            todolist,
-            clickHandler: "func1();"
-        });
-    })
+  const updateTask = () => {
+    if (input.trim() !== "" && editingIndex !== null) {
+      const updatedTasks = [...tasks];
+      updatedTasks[editingIndex] = input;
+      setTasks(updatedTasks);
+      setEditingIndex(null);
+      setInput("");
+    }
+  };
 
-    /* Adding an item to the to do list */
-    .post('/todo/add/', function (req, res) {
-        // Escapes HTML special characters in attribute values as HTML entities
-        let newTodo = sanitizer.escape(req.body.newtodo);
-        if (req.body.newtodo != '') {
-            todolist.push(newTodo);
-        }
-        res.redirect('/todo');
-    })
-
-    /* Deletes an item from the to do list */
-    .get('/todo/delete/:id', function (req, res) {
-        if (req.params.id != '') {
-            todolist.splice(req.params.id, 1);
-        }
-        res.redirect('/todo');
-    })
-
-    // Get a single todo item and render edit page
-    .get('/todo/:id', function (req, res) {
-        let todoIdx = req.params.id;
-        let todo = todolist[todoIdx];
-
-        if (todo) {
-            res.render('edititem.ejs', {
-                todoIdx,
-                todo,
-                clickHandler: "func1();"
-            });
-        } else {
-            res.redirect('/todo');
-        }
-    })
-
-    // Edit item in the todo list 
-    .put('/todo/edit/:id', function (req, res) {
-        let todoIdx = req.params.id;
-        // Escapes HTML special characters in attribute values as HTML entities
-        let editTodo = sanitizer.escape(req.body.editTodo);
-        if (todoIdx != '' && editTodo != '') {
-            todolist[todoIdx] = editTodo;
-        }
-        res.redirect('/todo');
-    })
-    /* Redirects to the to do list if the page requested is not found */
-    .use(function (req, res, next) {
-        res.redirect('/todo');
-    })
-
-    .listen(port, function () {
-        // Logging to console
-        console.log(`Todolist running on http://0.0.0.0:${port}`)
-    });
-// Export app
-module.exports = app;
+  return (
+    <div className="min-h-screen bg-gray-900 flex flex-col items-center p-6 text-white">
+      <motion.h1
+        className="text-4xl font-bold mb-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        Stunning To-Do App
+      </motion.h1>
+      <div className="flex gap-4 w-full max-w-md">
+        <Input
+          className="flex-1 bg-gray-800 border-gray-700 text-white"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Enter task..."
+        />
+        {editingIndex === null ? (
+          <Button onClick={addTask}>Add</Button>
+        ) : (
+          <Button onClick={updateTask}>Update</Button>
+        )}
+      </div>
+      <div className="mt-6 w-full max-w-md">
+        {tasks.map((task, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+          >
+            <Card className="bg-gray-800 shadow-lg mb-3">
+              <CardContent className="flex justify-between items-center p-4">
+                <span>{task}</span>
+                <div className="flex gap-2">
+                  <Button size="icon" variant="outline" onClick={() => editTask(index)}>
+                    <Edit3 size={16} />
+                  </Button>
+                  <Button size="icon" variant="destructive" onClick={() => deleteTask(index)}>
+                    <Trash2 size={16} />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
