@@ -1,29 +1,52 @@
 pipeline {
     agent { label 'node-agent' }
     
-    stages{
-        stage('Code'){
-            steps{
+    environment {
+        IMAGE_NAME = "writetoritika/node-todo-test"
+        TAG = "${env.BUILD_NUMBER}"  // Unique tag per build
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
                 git url: 'https://github.com/writetoritika/node-todo-cicd.git', branch: 'master' 
             }
         }
-        stage('Build and Test'){
-            steps{
-                sh 'docker build . -t writetoritika/node-todo-test:latest'
+
+        stage('Build and Test') {
+            steps {
+                sh "docker build -t ${IMAGE_NAME}:${TAG} ."
             }
         }
-        stage('Push'){
-            steps{
+
+        stage('Push to DockerHub') {
+            steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerHub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
-        	     sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
-                 sh 'docker push writetoritika/node-todo-test:latest'
+                    sh "echo ${env.dockerHubPassword} | docker login -u ${env.dockerHubUser} --password-stdin"
+                    sh "docker tag ${IMAGE_NAME}:${TAG} ${IMAGE_NAME}:latest"
+                    sh "docker push ${IMAGE_NAME}:${TAG}"
+                    sh "docker push ${IMAGE_NAME}:latest"
                 }
             }
         }
-        stage('Deploy'){
-            steps{
-                sh "docker-compose down && docker-compose up -d"
+
+        stage('Deploy Application') {
+            steps {
+                sh '''
+                docker-compose down || true
+                docker pull ${IMAGE_NAME}:latest
+                docker-compose up -d
+                '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Deployment Successful!"
+        }
+        failure {
+            echo "❌ Deployment Failed!"
         }
     }
 }
